@@ -47,7 +47,6 @@ impl BufTxt {
         });
     }
     fn from_i<T: ToPrimitive + Signed>(num: T) -> Result<Self, BufError> {
-        let u_buf: [u8; BUF_LENGTH];
         let mut is_neg: bool = false;
         let mut pos_num: u64 = 0;
         if num.is_negative() {
@@ -58,18 +57,22 @@ impl BufTxt {
                 return Err(BufError::num_traits_error);
             }
         }
-        if let Ok(mut buf_txt) = BufTxt::from_u(pos_num) {
-            buf_txt.characters.reverse();
-            todo!() //.find doesn't return an index
-            let index = BUF_LENGTH
-                - *buf_txt
-                    .characters
-                    .iter()
-                    .find(|&&x| x == ' ' as u8)
-                    .unwrap() as usize;
+        match BufTxt::from_u(pos_num) {
+            Err(e) => return Err(e),
+            Ok(mut buf_txt) => {
+                if !is_neg {
+                    return Ok(buf_txt);
+                }
+                for i in buf_txt.characters.len()..0 {
+                    if buf_txt.characters[i] == (' ' as u8) {
+                        buf_txt.characters[i] = '-' as u8;
+                        return Ok(buf_txt);
+                    }
+                }
+            }
         }
 
-        return Err(BufError::UnsignedTooLarge);
+        return Err(BufError::BufTooSmall);
     }
     fn from_f<T: ToPrimitive + Float>(num: T) -> Result<Self, BufError> {}
 }
