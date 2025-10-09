@@ -1,3 +1,4 @@
+use libc_print::libc_println;
 use num_traits::{Float, Num, Signed, ToPrimitive, Unsigned};
 
 #[derive(PartialEq, Debug, Eq)]
@@ -6,6 +7,7 @@ enum BufError {
     BufTooSmall,
     UnsignedTooLarge,
     SignedTooLarge,
+    FloatTooLarge,
     NumTraitsError,
 }
 
@@ -58,16 +60,14 @@ impl BufTxt {
         }
 
         let pos_num = pos_num_i.to_u64().unwrap(); //tested edge case already
-        println!("The number sent to unsigned was: {}", pos_num);
+        // libc_println!("The number sent to unsigned was: {}", pos_num);
         match BufTxt::from_u(pos_num) {
             Err(e) => return Err(e),
             Ok(mut buf_txt) => {
-                println!(
-                    "The unsigned fn returned: {}",
-                    core::str::from_utf8(&buf_txt.characters)
-                        .unwrap()
-                        .replace(" ", "")
-                );
+                // libc_println!(
+                //     "The unsigned fn returned: {}",
+                //     core::str::from_utf8(&buf_txt.characters).unwrap()
+                // );
                 if !is_neg {
                     return Ok(buf_txt);
                 }
@@ -82,7 +82,11 @@ impl BufTxt {
 
         return Err(BufError::BufTooSmall);
     }
-    // fn from_f<T: ToPrimitive + Float>(num: T) -> Result<Self, BufError> {}
+    // fn from_f<T: ToPrimitive + Float>(num: T) -> Result<Self, BufError> {
+    //     if num.to_i128().unwrap() > i64::MAX as i128 {
+    //         return Err(BufError::SignedTooLarge);
+    //     }
+    // }
 }
 
 #[cfg(test)]
@@ -124,7 +128,7 @@ mod tests {
 
         let res_over = BufTxt::from_i(std::i128::MAX);
         match res_over {
-            Ok(res) => println!(
+            Ok(res) => std::println!(
                 "The res_over didn't go over and produced: {:?}",
                 core::str::from_utf8(&res.characters)
             ),
