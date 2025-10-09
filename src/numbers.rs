@@ -5,7 +5,8 @@ use num_traits::{Float, Num, Signed, ToPrimitive, Unsigned};
 enum BufError {
     BufTooSmall,
     UnsignedTooLarge,
-    num_traits_error,
+    SignedTooLarge,
+    NumTraitsError,
 }
 
 const BUF_LENGTH: usize = 64;
@@ -20,7 +21,7 @@ impl BufTxt {
         let mut int_num: u64;
         if let Some(int) = num.to_u64() {
             int_num = int;
-            println!("input:  \nConversion to u64: {}", int);
+            // println!("input:  \nConversion to u64: {}", int);
         } else {
             return Err(BufError::UnsignedTooLarge);
         }
@@ -29,7 +30,6 @@ impl BufTxt {
         let mut i = BUF_LENGTH - 1;
 
         while i > 0 {
-            println!("int: {}\nint%10: {}", int_num, int_num % 10);
             //0x30 is super important otherwise the number shows up as blank lol
             //hexadecimal conversion is 0x30 = 0
             output_buf[i] = (int_num % 10) as u8 + 0x30;
@@ -47,14 +47,17 @@ impl BufTxt {
         });
     }
     fn from_i<T: ToPrimitive + Signed>(num: T) -> Result<Self, BufError> {
+        if num.to_i128().unwrap() > i64::MAX as i128 {
+            return Err(BufError::SignedTooLarge);
+        }
         let mut is_neg: bool = false;
-        let mut pos_num_i: i128 = num.to_i128().unwrap();
+        let mut pos_num_i: i64 = num.to_i64().unwrap();
         if num.is_negative() {
             is_neg = true;
             pos_num_i = pos_num_i * -1;
         }
-        assert_eq!(pos_num_i.is_positive(), true);
-        let pos_num = pos_num_i.to_u64().unwrap();
+
+        let pos_num = pos_num_i.to_u64().unwrap(); //tested edge case already
         println!("The number sent to unsigned was: {}", pos_num);
         match BufTxt::from_u(pos_num) {
             Err(e) => return Err(e),
@@ -68,7 +71,7 @@ impl BufTxt {
                 if !is_neg {
                     return Ok(buf_txt);
                 }
-                for i in buf_txt.characters.len()..0 {
+                for i in (0..BUF_LENGTH).rev() {
                     if buf_txt.characters[i] == (' ' as u8) {
                         buf_txt.characters[i] = '-' as u8;
                         return Ok(buf_txt);
@@ -125,7 +128,7 @@ mod tests {
                 "The res_over didn't go over and produced: {:?}",
                 core::str::from_utf8(&res.characters)
             ),
-            Err(e) => assert_eq!(e, BufError::UnsignedTooLarge),
+            Err(e) => assert_eq!(e, BufError::SignedTooLarge),
         }
 
         let res_random = BufTxt::from_i(215i16).unwrap();
