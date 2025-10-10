@@ -1,5 +1,5 @@
 use libc_print::libc_println;
-use num_traits::{Float, Num, Signed, ToPrimitive, Unsigned};
+use num_traits::{Float, Num, Signed, ToPrimitive, Unsigned, pow};
 
 #[derive(PartialEq, Debug, Eq)]
 #[allow(dead_code)]
@@ -49,11 +49,8 @@ impl BufTxt {
         });
     }
     fn from_i<T: ToPrimitive + Signed>(num: T) -> Result<Self, BufError> {
-        if num.to_i128().unwrap() > i64::MAX as i128 {
-            return Err(BufError::SignedTooLarge);
-        }
         let mut is_neg: bool = false;
-        let mut pos_num_i: i64 = num.to_i64().unwrap();
+        let mut pos_num_i: i64 = num.to_i64().ok_or(BufError::SignedTooLarge)?;
         if num.is_negative() {
             is_neg = true;
             pos_num_i = pos_num_i * -1;
@@ -82,11 +79,34 @@ impl BufTxt {
 
         return Err(BufError::BufTooSmall);
     }
-    // fn from_f<T: ToPrimitive + Float>(num: T) -> Result<Self, BufError> {
-    //     if num.to_i128().unwrap() > i64::MAX as i128 {
-    //         return Err(BufError::SignedTooLarge);
-    //     }
-    // }
+    fn from_f<T: ToPrimitive + Float>(num: T, d_place: u8) -> Result<Self, BufError> {
+        let mut float_buf: [u8; BUF_LENGTH] = [' ' as u8; BUF_LENGTH];
+        float_buf[BUF_LENGTH - (d_place as usize)] = '.' as u8;
+
+        //need to multiply the float to get all the digits we want to cover within a signed num
+        //ex 5.4321 -- dec_p of 3 -> 5432.1 -> (5432.1 as signed) = 5432
+        let scaled_num = pow(10, d_place as usize) * num.to_i64().ok_or(BufError::FloatTooLarge)?;
+        let signed_num = BufTxt::from_i(scaled_num)?;
+        if scaled_num == 0 {
+            return Ok(signed_num);
+        }
+
+        let mut ii = 0;
+        for i in (1..BUF_LENGTH).rev() {
+            if float_buf[i] == '.' as u8 {
+                ii = 1;
+            }
+            float_buf[i - ii] = signed_num.characters[i];
+
+            if signed_num.characters[i] == ' ' as u8 {
+                return Ok(Self {
+                    characters: float_buf,
+                });
+            }
+        }
+
+        return Err(BufError::NumTraitsError);
+    }
 }
 
 #[cfg(test)]
@@ -149,6 +169,42 @@ mod tests {
                 .unwrap()
                 .replace(" ", ""),
             "-3154"
+        );
+    }
+
+    #[test]
+    fn test_float_buf() {
+        let res_0 = BufTxt::from_f(0f32, 2).unwrap();
+        assert_eq!(
+            core::str::from_utf8(&res_0.characters)
+                .unwrap()
+                .replace(" ", ""),
+            "0"
+        );
+
+        let res_over = BufTxt::from_f(std::f64::MAX, 2);
+        match res_over {
+            Ok(res) => std::println!(
+                "The res_over didn't go over and produced: {:?}",
+                core::str::from_utf8(&res.characters)
+            ),
+            Err(e) => assert_eq!(e, BufError::FloatTooLarge),
+        }
+
+        let res_random = BufTxt::from_f(215.2341657f32, 3).unwrap();
+        assert_eq!(
+            core::str::from_utf8(&res_random.characters)
+                .unwrap()
+                .replace(" ", ""),
+            "215.234"
+        );
+
+        let neg_res_random = BufTxt::from_f(-3154.52611f32, 2).unwrap();
+        assert_eq!(
+            core::str::from_utf8(&neg_res_random.characters)
+                .unwrap()
+                .replace(" ", ""),
+            "-3154.53"
         );
     }
 }
