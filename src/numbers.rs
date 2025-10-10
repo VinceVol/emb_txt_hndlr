@@ -80,21 +80,31 @@ impl BufTxt {
         return Err(BufError::BufTooSmall);
     }
     fn from_f<T: ToPrimitive + Float>(num: T, d_place: u8) -> Result<Self, BufError> {
+        //Pre place decimal point and check for it later when filling in buf
         let mut float_buf: [u8; BUF_LENGTH] = [' ' as u8; BUF_LENGTH];
-        float_buf[BUF_LENGTH - (d_place as usize)] = '.' as u8;
+        float_buf[BUF_LENGTH - (d_place + 1) as usize] = '.' as u8;
 
         //need to multiply the float to get all the digits we want to cover within a signed num
         //ex 5.4321 -- dec_p of 3 -> 5432.1 -> (5432.1 as signed) = 5432
-        let scaled_num = pow(10, d_place as usize) * num.to_i64().ok_or(BufError::FloatTooLarge)?;
+        let float_num = num.to_f64().ok_or(BufError::FloatTooLarge)?;
+        let scaled_num = (pow(10.0, d_place as usize) * float_num)
+            .round()
+            .to_i64()
+            .ok_or(BufError::SignedTooLarge)?;
         let signed_num = BufTxt::from_i(scaled_num)?;
         if scaled_num == 0 {
             return Ok(signed_num);
         }
 
+        //Add 0 to beginning of numbers less than 1
+        if float_num < 1.0 && float_num > -1.0 {
+            float_buf[BUF_LENGTH - (d_place + 2) as usize] = '0' as u8;
+        }
+
         let mut ii = 0;
         for i in (1..BUF_LENGTH).rev() {
-            if float_buf[i] == '.' as u8 {
-                ii = 1;
+            if (float_buf[i] == '.' as u8) || (float_buf[i] == '0' as u8) {
+                ii += 1;
             }
             float_buf[i - ii] = signed_num.characters[i];
 
@@ -188,7 +198,7 @@ mod tests {
                 "The res_over didn't go over and produced: {:?}",
                 core::str::from_utf8(&res.characters)
             ),
-            Err(e) => assert_eq!(e, BufError::FloatTooLarge),
+            Err(e) => assert_eq!(e, BufError::SignedTooLarge),
         }
 
         let res_random = BufTxt::from_f(215.2341657f32, 3).unwrap();
@@ -205,6 +215,14 @@ mod tests {
                 .unwrap()
                 .replace(" ", ""),
             "-3154.53"
+        );
+
+        let neg_res_random = BufTxt::from_f(0.52611f32, 2).unwrap();
+        assert_eq!(
+            core::str::from_utf8(&neg_res_random.characters)
+                .unwrap()
+                .replace(" ", ""),
+            "0.53"
         );
     }
 }
