@@ -1,4 +1,4 @@
-use libc_print::libc_println;
+use libc_print::{libc_dbg, libc_println};
 use num_traits::{Float, Num, Signed, ToPrimitive, Unsigned, pow};
 
 #[derive(PartialEq, Debug, Eq)]
@@ -103,16 +103,15 @@ impl BufTxt {
 
         let mut ii = 0;
         for i in (1..BUF_LENGTH).rev() {
-            if (float_buf[i] == '.' as u8) || (float_buf[i] == '0' as u8) {
-                ii += 1;
-            }
-            float_buf[i - ii] = signed_num.characters[i];
-
             if signed_num.characters[i] == ' ' as u8 {
                 return Ok(Self {
                     characters: float_buf,
                 });
             }
+            if (float_buf[i] == '.' as u8) || (float_buf[i] == '0' as u8) {
+                ii += 1;
+            }
+            float_buf[i - ii] = signed_num.characters[i];
         }
 
         return Err(BufError::NumTraitsError);
