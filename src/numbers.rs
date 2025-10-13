@@ -1,5 +1,7 @@
-use libc_print::{libc_dbg, libc_println};
-use num_traits::{Float, Num, Signed, ToPrimitive, Unsigned, pow};
+use num_traits::{Num, Signed, ToPrimitive, Unsigned, float::FloatCore, pow};
+
+//Use this to only rip lines of code with std
+// #[cfg(feature = "std")]
 
 #[derive(PartialEq, Debug, Eq)]
 #[allow(dead_code)]
@@ -79,14 +81,13 @@ impl BufTxt {
 
         return Err(BufError::BufTooSmall);
     }
-    fn from_f<T: ToPrimitive + Float>(num: T, d_place: u8) -> Result<Self, BufError> {
+    fn from_f(float_num: f64, d_place: u8) -> Result<Self, BufError> {
         //Pre place decimal point and check for it later when filling in buf
         let mut float_buf: [u8; BUF_LENGTH] = [' ' as u8; BUF_LENGTH];
         float_buf[BUF_LENGTH - (d_place + 1) as usize] = '.' as u8;
 
         //need to multiply the float to get all the digits we want to cover within a signed num
         //ex 5.4321 -- dec_p of 3 -> 5432.1 -> (5432.1 as signed) = 5432
-        let float_num = num.to_f64().ok_or(BufError::FloatTooLarge)?;
         let scaled_num = (pow(10.0, d_place as usize) * float_num)
             .round()
             .to_i64()
@@ -183,7 +184,7 @@ mod tests {
 
     #[test]
     fn test_float_buf() {
-        let res_0 = BufTxt::from_f(0f32, 2).unwrap();
+        let res_0 = BufTxt::from_f(0f64, 2).unwrap();
         assert_eq!(
             core::str::from_utf8(&res_0.characters)
                 .unwrap()
@@ -200,7 +201,7 @@ mod tests {
             Err(e) => assert_eq!(e, BufError::SignedTooLarge),
         }
 
-        let res_random = BufTxt::from_f(215.2341657f32, 3).unwrap();
+        let res_random = BufTxt::from_f(215.2341657f64, 3).unwrap();
         assert_eq!(
             core::str::from_utf8(&res_random.characters)
                 .unwrap()
@@ -208,7 +209,7 @@ mod tests {
             "215.234"
         );
 
-        let neg_res_random = BufTxt::from_f(-3154.52611f32, 2).unwrap();
+        let neg_res_random = BufTxt::from_f(-3154.52611f64, 2).unwrap();
         assert_eq!(
             core::str::from_utf8(&neg_res_random.characters)
                 .unwrap()
@@ -216,7 +217,7 @@ mod tests {
             "-3154.53"
         );
 
-        let neg_res_random = BufTxt::from_f(0.52611f32, 2).unwrap();
+        let neg_res_random = BufTxt::from_f(0.52611f64, 2).unwrap();
         assert_eq!(
             core::str::from_utf8(&neg_res_random.characters)
                 .unwrap()
