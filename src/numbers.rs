@@ -1,3 +1,4 @@
+use crate::{BUF_LENGTH, BufTxt};
 use num_traits::{Signed, ToPrimitive, Unsigned, float::FloatCore, pow};
 
 //Use this to only rip lines of code with std
@@ -13,13 +14,6 @@ pub enum BufError {
     NumTraitsError,
 }
 
-const BUF_LENGTH: usize = 64;
-#[allow(dead_code)]
-pub struct BufTxt {
-    characters: [u8; BUF_LENGTH], //the fixed size bit makes things difficult
-}
-
-#[allow(dead_code)]
 impl BufTxt {
     pub fn from_u<T: ToPrimitive + Unsigned>(num: T) -> Result<Self, BufError> {
         let mut int_num: u64;
@@ -29,7 +23,7 @@ impl BufTxt {
             return Err(BufError::UnsignedTooLarge);
         }
 
-        let mut output_buf: [u8; BUF_LENGTH] = [' ' as u8; BUF_LENGTH];
+        let mut output_buf: [u8; BUF_LENGTH] = [0; BUF_LENGTH];
         let mut i = BUF_LENGTH - 1;
 
         while i > 0 {
@@ -49,7 +43,7 @@ impl BufTxt {
             characters: output_buf,
         });
     }
-    fn from_i<T: ToPrimitive + Signed>(num: T) -> Result<Self, BufError> {
+    pub fn from_i<T: ToPrimitive + Signed>(num: T) -> Result<Self, BufError> {
         let mut is_neg: bool = false;
         let mut pos_num_i: i64 = num.to_i64().ok_or(BufError::SignedTooLarge)?;
         if num.is_negative() {
@@ -80,7 +74,7 @@ impl BufTxt {
 
         return Err(BufError::BufTooSmall);
     }
-    fn from_f(float_num: f64, d_place: u8) -> Result<Self, BufError> {
+    pub fn from_f(float_num: f64, d_place: u8) -> Result<Self, BufError> {
         //Pre place decimal point and check for it later when filling in buf
         let mut float_buf: [u8; BUF_LENGTH] = [' ' as u8; BUF_LENGTH];
         float_buf[BUF_LENGTH - (d_place + 1) as usize] = '.' as u8;
