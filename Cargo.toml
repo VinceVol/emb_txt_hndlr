@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-libc-print = "0.1.23"
 num-traits = { version = "0.2.10", default-features = false }
+

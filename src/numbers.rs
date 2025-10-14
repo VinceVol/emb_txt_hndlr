@@ -1,11 +1,11 @@
-use num_traits::{Num, Signed, ToPrimitive, Unsigned, float::FloatCore, pow};
+use num_traits::{Signed, ToPrimitive, Unsigned, float::FloatCore, pow};
 
 //Use this to only rip lines of code with std
 // #[cfg(feature = "std")]
 
 #[derive(PartialEq, Debug, Eq)]
 #[allow(dead_code)]
-enum BufError {
+pub enum BufError {
     BufTooSmall,
     UnsignedTooLarge,
     SignedTooLarge,
@@ -25,7 +25,6 @@ impl BufTxt {
         let mut int_num: u64;
         if let Some(int) = num.to_u64() {
             int_num = int;
-            // println!("input:  \nConversion to u64: {}", int);
         } else {
             return Err(BufError::UnsignedTooLarge);
         }
