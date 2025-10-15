@@ -1,18 +1,8 @@
-use crate::{BUF_LENGTH, BufTxt};
+use crate::{BUF_LENGTH, BufError, BufTxt};
 use num_traits::{Signed, ToPrimitive, Unsigned, float::FloatCore, pow};
 
 //Use this to only rip lines of code with std
 // #[cfg(feature = "std")]
-
-#[derive(PartialEq, Debug, Eq)]
-#[allow(dead_code)]
-pub enum BufError {
-    BufTooSmall,
-    UnsignedTooLarge,
-    SignedTooLarge,
-    FloatTooLarge,
-    NumTraitsError,
-}
 
 impl BufTxt {
     pub fn from_u<T: ToPrimitive + Unsigned>(num: T) -> Result<Self, BufError> {
@@ -23,7 +13,7 @@ impl BufTxt {
             return Err(BufError::UnsignedTooLarge);
         }
 
-        let mut output_buf: [u8; BUF_LENGTH] = [0; BUF_LENGTH];
+        let mut output_buf: [u8; BUF_LENGTH] = [' ' as u8; BUF_LENGTH];
         let mut i = BUF_LENGTH - 1;
 
         while i > 0 {
