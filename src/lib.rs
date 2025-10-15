@@ -1,4 +1,4 @@
-#![cfg_attr(not(test), no_std)]
+// #![cfg_attr(not(test), no_std)]
 
 use core::str;
 
@@ -22,7 +22,7 @@ pub struct BufTxt {
 impl BufTxt {
     pub fn new(s: &str) -> Result<Self, BufError> {
         let buf = s.as_bytes();
-        let mut new_buf: [u8; BUF_LENGTH] = [0; BUF_LENGTH];
+        let mut new_buf: [u8; BUF_LENGTH] = [' ' as u8; BUF_LENGTH];
 
         if buf.len() > BUF_LENGTH {
             return Err(BufError::BufTooSmall);
@@ -30,6 +30,9 @@ impl BufTxt {
 
         for i in (0..BUF_LENGTH).rev() {
             new_buf[i] = buf[buf.len() - (BUF_LENGTH - i)];
+            if buf.len() <= BUF_LENGTH - i {
+                break;
+            }
         }
 
         return Ok(Self {
@@ -46,6 +49,11 @@ mod tests {
     #[test]
     fn test_new() {
         let new_buf = BufTxt::new("12345.lksjdfhg").expect("Failed to buftxt::new");
-        assert_eq!(core::str::from_utf8(&new_buf.characters).unwrap(), "");
+        assert_eq!(
+            core::str::from_utf8(&new_buf.characters)
+                .unwrap()
+                .replace(" ", ""),
+            "12345.lksjdfhg"
+        );
     }
 }

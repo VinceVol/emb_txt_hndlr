@@ -13,6 +13,7 @@ impl BufTxt {
         }
 
         for i_b in (0..BUF_LENGTH).rev() {
+            println!("b_i: {}, {}", i_b, BUF_LENGTH - nb_index - 1);
             if b.characters[i_b] == 0 {
                 break;
             } else if i_b < (BUF_LENGTH - nb_index) {
@@ -32,8 +33,16 @@ mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
-    // #[test]
-    // fn test_concat() {
-    //     let buf_a = BUF
-    // }
+    #[test]
+    fn test_concat() {
+        let buf_a = BufTxt::new("hello ").unwrap();
+        let buf_b = BufTxt::new("world").unwrap();
+        let buf_c = BufTxt::concat(buf_a, buf_b).unwrap();
+        assert_eq!(
+            core::str::from_utf8(&buf_c.characters)
+                .unwrap()
+                .replace(" ", ""),
+            "hello world"
+        );
+    }
 }
