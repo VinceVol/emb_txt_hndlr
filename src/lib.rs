@@ -15,8 +15,10 @@ pub enum BufError {
 }
 
 static BUF_LENGTH: usize = 64;
+
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct BufTxt {
-    characters: [u8; BUF_LENGTH], //the fixed size bit makes things difficult
+    pub characters: [u8; BUF_LENGTH], //the fixed size bit makes things difficult
 }
 
 impl BufTxt {
@@ -38,6 +40,14 @@ impl BufTxt {
         return Ok(Self {
             characters: new_buf,
         });
+    }
+}
+
+impl Default for BufTxt {
+    fn default() -> Self {
+        Self {
+            characters: [' ' as u8; BUF_LENGTH],
+        }
     }
 }
 
