@@ -34,6 +34,20 @@ impl BufTxt {
         }
         return Ok(new_buf);
     }
+    pub fn split(self, split_c: u8, buf_array: &mut [BufTxt]) -> Result<(), BufError> {
+        let mut start_i: usize = 0;
+        let mut buf_i: usize = 0;
+
+        for i in 0..BUF_LENGTH {
+            if self.characters[i] == split_c {
+                buf_array[buf_i] =
+                    BufTxt::new(core::str::from_utf8(&self.characters[start_i..i - 1]).unwrap())?;
+                buf_i += 1;
+                start_i = i + 1;
+            }
+        }
+        return Ok(());
+    }
 }
 
 #[cfg(test)]
@@ -67,5 +81,15 @@ mod tests {
                 .replace(" ", ""),
             "0:2:20"
         );
+    }
+
+    #[test]
+    fn test_split() {
+        let gpg_txt =
+            BufTxt::new("GPGGA,113727,4303.16727,N,08612.65632,W,1,07,1.43,197.6,M,-34.5,M,,*60")
+                .unwrap();
+        let buf_list: [BufTxt; 20];
+        gpg_txt.split();
+        assert_eq!(true, true);
     }
 }
