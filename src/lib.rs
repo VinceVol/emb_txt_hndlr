@@ -1,4 +1,4 @@
-#![cfg_attr(not(test), no_std)]
+// #![cfg_attr(not(test), no_std)]
 
 use core::str;
 
@@ -14,9 +14,9 @@ pub enum BufError {
     NumTraitsError,
 }
 
-static BUF_LENGTH: usize = 64;
+static BUF_LENGTH: usize = 256;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct BufTxt {
     pub characters: [u8; BUF_LENGTH], //the fixed size bit makes things difficult
 }
@@ -30,6 +30,7 @@ impl BufTxt {
             return Err(BufError::BufTooSmall);
         }
 
+        // println!("buf.len():{} \n BUF_LENGTH:{}", buf.len(), BUF_LENGTH);
         for i in (0..BUF_LENGTH).rev() {
             new_buf[i] = buf[buf.len() - (BUF_LENGTH - i)];
             if buf.len() <= BUF_LENGTH - i {

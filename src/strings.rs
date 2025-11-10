@@ -39,9 +39,14 @@ impl BufTxt {
         let mut buf_i: usize = 0;
 
         for i in 0..BUF_LENGTH {
-            if self.characters[i] == split_c {
+            if (self.characters[i] == split_c | todo!()) && (i - start_i > 1) {
                 buf_array[buf_i] =
-                    BufTxt::new(core::str::from_utf8(&self.characters[start_i..i - 1]).unwrap())?;
+                    BufTxt::new(core::str::from_utf8(&self.characters[start_i..i]).unwrap())?;
+                buf_i += 1;
+                start_i = i + 1;
+            } else if self.characters[i] == split_c && (i - start_i == 1) {
+                buf_array[buf_i] =
+                    BufTxt::new(core::str::from_utf8(&[self.characters[i - 1]]).unwrap())?;
                 buf_i += 1;
                 start_i = i + 1;
             }
@@ -86,10 +91,19 @@ mod tests {
     #[test]
     fn test_split() {
         let gpg_txt =
-            BufTxt::new("GPGGA,113727,4303.16727,N,08612.65632,W,1,07,1.43,197.6,M,-34.5,M,,*60")
+            BufTxt::new("GPGGA,,113727,4303.16727,N,08612.65632,W,1,07,1.43,197.6,M,-34.5,M,,*60")
                 .unwrap();
-        let buf_list: [BufTxt; 20];
-        gpg_txt.split();
-        assert_eq!(true, true);
+        let mut buf_list: [BufTxt; 20] = [BufTxt::default(); 20];
+        println!("GPGGA,113727,4303.16727,N,08612.65632,W,1,07,1.43,197.6,M,-34.5,M,,*60");
+        gpg_txt.split(',' as u8, &mut buf_list);
+        for item in buf_list {
+            println!(
+                "{}",
+                core::str::from_utf8(&item.characters)
+                    .unwrap()
+                    .replace(" ", "")
+            );
+        }
+        assert_eq!(true, false);
     }
 }
