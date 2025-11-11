@@ -1,4 +1,4 @@
-use crate::{BUF_LENGTH, BufError, BufTxt};
+use crate::{BUF_LENGTH, BufError, BufTxt, EMPTY_CELL};
 use num_traits::{Signed, ToPrimitive, Unsigned, float::FloatCore, pow};
 
 //Use this to only rip lines of code with std
@@ -13,7 +13,7 @@ impl BufTxt {
             return Err(BufError::UnsignedTooLarge);
         }
 
-        let mut output_buf: [u8; BUF_LENGTH] = [' ' as u8; BUF_LENGTH];
+        let mut output_buf: [u8; BUF_LENGTH] = [EMPTY_CELL; BUF_LENGTH];
         let mut i = BUF_LENGTH - 1;
 
         while i > 0 {
@@ -54,7 +54,7 @@ impl BufTxt {
                     return Ok(buf_txt);
                 }
                 for i in (0..BUF_LENGTH).rev() {
-                    if buf_txt.characters[i] == (' ' as u8) {
+                    if buf_txt.characters[i] == (EMPTY_CELL) {
                         buf_txt.characters[i] = '-' as u8;
                         return Ok(buf_txt);
                     }
@@ -66,7 +66,7 @@ impl BufTxt {
     }
     pub fn from_f(float_num: f64, d_place: u8) -> Result<Self, BufError> {
         //Pre place decimal point and check for it later when filling in buf
-        let mut float_buf: [u8; BUF_LENGTH] = [' ' as u8; BUF_LENGTH];
+        let mut float_buf: [u8; BUF_LENGTH] = [EMPTY_CELL; BUF_LENGTH];
         float_buf[BUF_LENGTH - (d_place + 1) as usize] = '.' as u8;
 
         //need to multiply the float to get all the digits we want to cover within a signed num
@@ -87,7 +87,7 @@ impl BufTxt {
 
         let mut ii = 0;
         for i in (1..BUF_LENGTH).rev() {
-            if signed_num.characters[i] == ' ' as u8 {
+            if signed_num.characters[i] == EMPTY_CELL {
                 return Ok(Self {
                     characters: float_buf,
                 });

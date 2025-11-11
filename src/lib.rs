@@ -15,6 +15,7 @@ pub enum BufError {
 }
 
 static BUF_LENGTH: usize = 256;
+static EMPTY_CELL: u8 = ' ' as u8;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct BufTxt {
@@ -24,7 +25,7 @@ pub struct BufTxt {
 impl BufTxt {
     pub fn new(s: &str) -> Result<Self, BufError> {
         let buf = s.as_bytes();
-        let mut new_buf: [u8; BUF_LENGTH] = [' ' as u8; BUF_LENGTH];
+        let mut new_buf: [u8; BUF_LENGTH] = [EMPTY_CELL; BUF_LENGTH];
 
         if buf.len() > BUF_LENGTH {
             return Err(BufError::BufTooSmall);
@@ -47,7 +48,7 @@ impl BufTxt {
 impl Default for BufTxt {
     fn default() -> Self {
         Self {
-            characters: [' ' as u8; BUF_LENGTH],
+            characters: [EMPTY_CELL; BUF_LENGTH],
         }
     }
 }

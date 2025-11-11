@@ -1,12 +1,12 @@
-use crate::{BUF_LENGTH, BufError, BufTxt};
+use crate::{BUF_LENGTH, BufError, BufTxt, EMPTY_CELL};
 
 impl BufTxt {
     pub fn concat(a: BufTxt, b: BufTxt) -> Result<Self, BufError> {
-        let mut new_buf: [u8; BUF_LENGTH] = [' ' as u8; BUF_LENGTH];
+        let mut new_buf: [u8; BUF_LENGTH] = [EMPTY_CELL; BUF_LENGTH];
         let mut nb_index: usize = 0;
         for i_b in (0..BUF_LENGTH).rev() {
             new_buf[i_b] = b.characters[i_b];
-            if i_b - 1 > 0 && b.characters[i_b - 1] == ' ' as u8 {
+            if i_b - 1 > 0 && b.characters[i_b - 1] == EMPTY_CELL {
                 nb_index = i_b;
                 break;
             }
@@ -18,7 +18,7 @@ impl BufTxt {
             }
 
             new_buf[i_a - (BUF_LENGTH - nb_index)] = a.characters[i_a];
-            if i_a - 1 > 0 && a.characters[i_a - 1] == ' ' as u8 {
+            if i_a - 1 > 0 && a.characters[i_a - 1] == EMPTY_CELL {
                 break;
             }
         }
@@ -37,9 +37,18 @@ impl BufTxt {
     pub fn split(self, split_c: u8, buf_array: &mut [BufTxt]) -> Result<(), BufError> {
         let mut start_i: usize = 0;
         let mut buf_i: usize = 0;
-
         for i in 0..BUF_LENGTH {
-            if (self.characters[i] == split_c | todo!()) && (i - start_i > 1) {
+            if buf_i >= buf_array.len() {
+                return Err(BufError::BufTooSmall);
+            }
+            if i < BUF_LENGTH - 1
+                && self.characters[i] == split_c
+                && self.characters[i + 1] == split_c
+            {
+                todo!(); //still working on ignoring empty elements
+                continue;
+            } else if (self.characters[i] == split_c || i == (BUF_LENGTH - 1)) && (i - start_i > 1)
+            {
                 buf_array[buf_i] =
                     BufTxt::new(core::str::from_utf8(&self.characters[start_i..i]).unwrap())?;
                 buf_i += 1;
@@ -93,7 +102,7 @@ mod tests {
         let gpg_txt =
             BufTxt::new("GPGGA,,113727,4303.16727,N,08612.65632,W,1,07,1.43,197.6,M,-34.5,M,,*60")
                 .unwrap();
-        let mut buf_list: [BufTxt; 20] = [BufTxt::default(); 20];
+        let mut buf_list: [BufTxt; 30] = [BufTxt::default(); 30];
         println!("GPGGA,113727,4303.16727,N,08612.65632,W,1,07,1.43,197.6,M,-34.5,M,,*60");
         gpg_txt.split(',' as u8, &mut buf_list);
         for item in buf_list {
