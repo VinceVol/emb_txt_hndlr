@@ -41,19 +41,53 @@ impl BufTxt {
             if buf_i >= buf_array.len() {
                 return Err(BufError::BufTooSmall);
             }
-            if i < BUF_LENGTH - 1
-                && self.characters[i] == split_c
-                && self.characters[i + 1] == split_c
-            {
-                todo!(); //still working on ignoring empty elements
-                continue;
+            if i < BUF_LENGTH - 1 && i == start_i + 1 && self.characters[start_i + 1] == split_c {
+                //----------------------------------------------------------------------------------
+                println!("empty sol");
+                for sp in 1..start_i {
+                    print!(" ");
+                }
+                print!("s");
+                for sp in start_i..i {
+                    print!(" ");
+                }
+                println!("i");
+                println!("{}", core::str::from_utf8(&self.characters).unwrap());
+                //----------------------------------------------------------------------------------
+                start_i = i;
+                buf_array[buf_i] = BufTxt::new(" ")?;
+                buf_i += 1;
             } else if (self.characters[i] == split_c || i == (BUF_LENGTH - 1)) && (i - start_i > 1)
             {
+                //----------------------------------------------------------------------------------
+                println!("string sol");
+                for sp in 1..start_i {
+                    print!(" ");
+                }
+                print!("s");
+                for sp in start_i..i {
+                    print!(" ");
+                }
+                println!("i");
+                println!("{}", core::str::from_utf8(&self.characters).unwrap());
+                //----------------------------------------------------------------------------------
                 buf_array[buf_i] =
                     BufTxt::new(core::str::from_utf8(&self.characters[start_i..i]).unwrap())?;
                 buf_i += 1;
                 start_i = i + 1;
             } else if self.characters[i] == split_c && (i - start_i == 1) {
+                //----------------------------------------------------------------------------------
+                println!("char sol");
+                for sp in 1..start_i {
+                    print!(" ");
+                }
+                print!("s");
+                for sp in start_i..i {
+                    print!(" ");
+                }
+                println!("i");
+                println!("{}", core::str::from_utf8(&self.characters).unwrap());
+                //----------------------------------------------------------------------------------
                 buf_array[buf_i] =
                     BufTxt::new(core::str::from_utf8(&[self.characters[i - 1]]).unwrap())?;
                 buf_i += 1;
