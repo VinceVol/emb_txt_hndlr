@@ -42,56 +42,29 @@ impl BufTxt {
                 return Err(BufError::BufTooSmall);
             }
             if i < BUF_LENGTH - 1 && i == start_i + 1 && self.characters[start_i + 1] == split_c {
-                //----------------------------------------------------------------------------------
-                println!("empty sol");
-                for sp in 1..start_i {
-                    print!(" ");
-                }
-                print!("s");
-                for sp in start_i..i {
-                    print!(" ");
-                }
-                println!("i");
-                println!("{}", core::str::from_utf8(&self.characters).unwrap());
-                //----------------------------------------------------------------------------------
-                start_i = i;
-                buf_array[buf_i] = BufTxt::new(" ")?;
-                buf_i += 1;
-            } else if (self.characters[i] == split_c || i == (BUF_LENGTH - 1)) && (i - start_i > 1)
-            {
-                //----------------------------------------------------------------------------------
-                println!("string sol");
-                for sp in 1..start_i {
-                    print!(" ");
-                }
-                print!("s");
-                for sp in start_i..i {
-                    print!(" ");
-                }
-                println!("i");
-                println!("{}", core::str::from_utf8(&self.characters).unwrap());
-                //----------------------------------------------------------------------------------
-                buf_array[buf_i] =
-                    BufTxt::new(core::str::from_utf8(&self.characters[start_i..i]).unwrap())?;
-                buf_i += 1;
-                start_i = i + 1;
-            } else if self.characters[i] == split_c && (i - start_i == 1) {
-                //----------------------------------------------------------------------------------
-                println!("char sol");
-                for sp in 1..start_i {
-                    print!(" ");
-                }
-                print!("s");
-                for sp in start_i..i {
-                    print!(" ");
-                }
-                println!("i");
-                println!("{}", core::str::from_utf8(&self.characters).unwrap());
-                //----------------------------------------------------------------------------------
+                //char sol
                 buf_array[buf_i] =
                     BufTxt::new(core::str::from_utf8(&[self.characters[i - 1]]).unwrap())?;
                 buf_i += 1;
                 start_i = i + 1;
+            } else if (self.characters[i] == split_c && (i - start_i > 1)) {
+                //String Sol
+                buf_array[buf_i] =
+                    BufTxt::new(core::str::from_utf8(&self.characters[start_i..i]).unwrap())?;
+                buf_i += 1;
+                start_i = i + 1;
+            } else if i == BUF_LENGTH - 1 {
+                //end sol
+                buf_array[buf_i] = BufTxt::new(
+                    core::str::from_utf8(&self.characters[start_i..BUF_LENGTH]).unwrap(),
+                )?;
+                buf_i += 1;
+                start_i = i + 1;
+            } else if start_i == i && self.characters[start_i] == split_c {
+                //Empty Sol
+                start_i = i + 1;
+                buf_array[buf_i] = BufTxt::new(" ")?;
+                buf_i += 1;
             }
         }
         return Ok(());
@@ -137,7 +110,7 @@ mod tests {
             BufTxt::new("GPGGA,,113727,4303.16727,N,08612.65632,W,1,07,1.43,197.6,M,-34.5,M,,*60")
                 .unwrap();
         let mut buf_list: [BufTxt; 30] = [BufTxt::default(); 30];
-        println!("GPGGA,113727,4303.16727,N,08612.65632,W,1,07,1.43,197.6,M,-34.5,M,,*60");
+        println!("GPGGA,,113727,4303.16727,N,08612.65632,W,1,07,1.43,197.6,M,-34.5,M,,*60");
         gpg_txt.split(',' as u8, &mut buf_list);
         for item in buf_list {
             println!(
@@ -150,3 +123,27 @@ mod tests {
         assert_eq!(true, false);
     }
 }
+
+//Print Debug
+// println!(
+//     "start_i|{}: {}",
+//     start_i,
+//     core::str::from_utf8(&[self.characters[start_i]]).unwrap()
+// );
+// println!(
+//     "      i|{}: {}",
+//     i,
+//     core::str::from_utf8(&[self.characters[i]]).unwrap()
+// );
+// //----------------------------------------------------------------------------------
+// println!("string sol");
+// for sp in 1..start_i {
+//     print!(" ");
+// }
+// print!("s");
+// for sp in start_i..i {
+//     print!(" ");
+// }
+// println!("i");
+// println!("{}", core::str::from_utf8(&self.characters).unwrap());
+// //----------------------------------------------------------------------------------
