@@ -43,27 +43,23 @@ impl BufTxt {
             }
             if i < BUF_LENGTH - 1 && i == start_i + 1 && self.characters[start_i + 1] == split_c {
                 //char sol
-                buf_array[buf_i] =
-                    BufTxt::new(core::str::from_utf8(&[self.characters[i - 1]]).unwrap())?;
+                buf_array[buf_i] = BufTxt::from_u8(&[self.characters[i - 1]])?;
                 buf_i += 1;
                 start_i = i + 1;
             } else if self.characters[i] == split_c && (i - start_i > 1) {
                 //String Sol
-                buf_array[buf_i] =
-                    BufTxt::new(core::str::from_utf8(&self.characters[start_i..i]).unwrap())?;
+                buf_array[buf_i] = BufTxt::from_u8(&self.characters[start_i..i])?;
                 buf_i += 1;
                 start_i = i + 1;
             } else if i == BUF_LENGTH - 1 {
                 //end sol
-                buf_array[buf_i] = BufTxt::new(
-                    core::str::from_utf8(&self.characters[start_i..BUF_LENGTH]).unwrap(),
-                )?;
+                buf_array[buf_i] = BufTxt::from_u8(&self.characters[start_i..BUF_LENGTH])?;
                 buf_i += 1;
                 start_i = i + 1;
             } else if start_i == i && self.characters[start_i] == split_c {
                 //Empty Sol
                 start_i = i + 1;
-                buf_array[buf_i] = BufTxt::new(" ")?;
+                buf_array[buf_i] = BufTxt::from_str(" ")?;
                 buf_i += 1;
             }
         }
@@ -78,8 +74,8 @@ mod tests {
 
     #[test]
     fn test_concat() {
-        let buf_a = BufTxt::new("0").unwrap();
-        let buf_b = BufTxt::new(":").unwrap();
+        let buf_a = BufTxt::from_str("0").unwrap();
+        let buf_b = BufTxt::from_str(":").unwrap();
         let buf_c = BufTxt::concat(buf_a, buf_b).unwrap();
         assert_eq!(
             core::str::from_utf8(&buf_c.characters)
@@ -91,10 +87,10 @@ mod tests {
 
     #[test]
     fn test_concat_list() {
-        let hr = BufTxt::new("0").unwrap();
-        let min = BufTxt::new("2").unwrap();
-        let sec = BufTxt::new("20").unwrap();
-        let colon = BufTxt::new(":").unwrap();
+        let hr = BufTxt::from_str("0").unwrap();
+        let min = BufTxt::from_str("2").unwrap();
+        let sec = BufTxt::from_str("20").unwrap();
+        let colon = BufTxt::from_str(":").unwrap();
         let combined = BufTxt::concat_list(&[hr, colon, min, colon, sec]).unwrap();
         assert_eq!(
             core::str::from_utf8(&combined.characters)
@@ -107,9 +103,10 @@ mod tests {
     #[test]
     #[ignore]
     fn test_split() {
-        let gpg_txt =
-            BufTxt::new("GPGGA,,113727,4303.16727,N,08612.65632,W,1,07,1.43,197.6,M,-34.5,M,,*60")
-                .unwrap();
+        let gpg_txt = BufTxt::from_str(
+            "GPGGA,,113727,4303.16727,N,08612.65632,W,1,07,1.43,197.6,M,-34.5,M,,*60",
+        )
+        .unwrap();
         let mut buf_list: [BufTxt; 30] = [BufTxt::default(); 30];
         println!("GPGGA,,113727,4303.16727,N,08612.65632,W,1,07,1.43,197.6,M,-34.5,M,,*60");
         let _ = gpg_txt.split(',' as u8, &mut buf_list);

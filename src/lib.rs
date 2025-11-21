@@ -14,7 +14,7 @@ pub enum BufError {
     NumTraitsError,
 }
 
-static BUF_LENGTH: usize = 128;
+static BUF_LENGTH: usize = 256;
 static EMPTY_CELL: u8 = ' ' as u8;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -23,8 +23,11 @@ pub struct BufTxt {
 }
 
 impl BufTxt {
-    pub fn new(s: &str) -> Result<Self, BufError> {
+    pub fn from_str(s: &str) -> Result<Self, BufError> {
         let buf = s.as_bytes();
+        return BufTxt::from_u8(buf);
+    }
+    pub fn from_u8(buf: &[u8]) -> Result<Self, BufError> {
         let mut new_buf: [u8; BUF_LENGTH] = [EMPTY_CELL; BUF_LENGTH];
 
         if buf.len() > BUF_LENGTH {
@@ -60,7 +63,7 @@ mod tests {
 
     #[test]
     fn test_new() {
-        let new_buf = BufTxt::new("12345.lksjdfhg").expect("Failed to buftxt::new");
+        let new_buf = BufTxt::from_str("12345.lksjdfhg").expect("Failed to buftxt::new");
         assert_eq!(
             core::str::from_utf8(&new_buf.characters)
                 .unwrap()
