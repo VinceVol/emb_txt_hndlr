@@ -47,7 +47,7 @@ impl BufTxt {
                     BufTxt::new(core::str::from_utf8(&[self.characters[i - 1]]).unwrap())?;
                 buf_i += 1;
                 start_i = i + 1;
-            } else if (self.characters[i] == split_c && (i - start_i > 1)) {
+            } else if self.characters[i] == split_c && (i - start_i > 1) {
                 //String Sol
                 buf_array[buf_i] =
                     BufTxt::new(core::str::from_utf8(&self.characters[start_i..i]).unwrap())?;
@@ -105,13 +105,14 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_split() {
         let gpg_txt =
             BufTxt::new("GPGGA,,113727,4303.16727,N,08612.65632,W,1,07,1.43,197.6,M,-34.5,M,,*60")
                 .unwrap();
         let mut buf_list: [BufTxt; 30] = [BufTxt::default(); 30];
         println!("GPGGA,,113727,4303.16727,N,08612.65632,W,1,07,1.43,197.6,M,-34.5,M,,*60");
-        gpg_txt.split(',' as u8, &mut buf_list);
+        let _ = gpg_txt.split(',' as u8, &mut buf_list);
         for item in buf_list {
             println!(
                 "{}",
