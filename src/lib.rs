@@ -14,7 +14,7 @@ pub enum BufError {
     NumTraitsError,
 }
 
-static BUF_LENGTH: usize = 256;
+pub static BUF_LENGTH: usize = 256;
 static EMPTY_CELL: u8 = ' ' as u8;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
