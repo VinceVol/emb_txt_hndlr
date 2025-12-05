@@ -15,6 +15,7 @@ impl BufTxt {
 
         let mut output_buf: [u8; BUF_LENGTH] = [EMPTY_CELL; BUF_LENGTH];
         let mut i = BUF_LENGTH - 1;
+        let mut length = 0;
 
         while i > 0 {
             //0x30 is super important otherwise the number shows up as blank lol
@@ -22,15 +23,23 @@ impl BufTxt {
             output_buf[i] = (int_num % 10) as u8 + 0x30;
             int_num /= 10;
             i -= 1;
+            length += 1;
             if int_num == 0 {
                 break;
             }
         }
+        //need to reverse output buf so that empty u8s are in the back instead of the front
+
+        let mut rev_new_buf = [EMPTY_CELL; BUF_LENGTH];
+        for i in 0..length {
+            rev_new_buf[i] = output_buf[BUF_LENGTH - length + i];
+        }
+
         if int_num > 0 {
             return Err(BufError::BufTooSmall);
         }
         return Ok(BufTxt {
-            characters: output_buf,
+            characters: rev_new_buf,
         });
     }
     pub fn from_i<T: ToPrimitive + Signed>(num: T) -> Result<Self, BufError> {
@@ -53,7 +62,7 @@ impl BufTxt {
                 if !is_neg {
                     return Ok(buf_txt);
                 }
-                for i in (0..BUF_LENGTH).rev() {
+                for i in (0..BUF_LENGTH) {
                     if buf_txt.characters[i] == (EMPTY_CELL) {
                         buf_txt.characters[i] = '-' as u8;
                         return Ok(buf_txt);
@@ -132,37 +141,22 @@ mod tests {
     #[test]
     fn test_signed_buf() {
         let res_0 = BufTxt::from_i(0i8).unwrap();
-        assert_eq!(
-            core::str::from_utf8(&res_0.characters)
-                .unwrap()
-                .replace(" ", ""),
-            "0"
-        );
+        assert_eq!(res_0.to_str().unwrap(), "0");
 
         let res_over = BufTxt::from_i(std::i128::MAX);
         match res_over {
             Ok(res) => std::println!(
                 "The res_over didn't go over and produced: {:?}",
-                core::str::from_utf8(&res.characters)
+                res.to_str().unwrap()
             ),
             Err(e) => assert_eq!(e, BufError::SignedTooLarge),
         }
 
         let res_random = BufTxt::from_i(215i16).unwrap();
-        assert_eq!(
-            core::str::from_utf8(&res_random.characters)
-                .unwrap()
-                .replace(" ", ""),
-            "215"
-        );
+        assert_eq!(res_random.to_str().unwrap(), "215");
 
         let neg_res_random = BufTxt::from_i(-3154i32).unwrap();
-        assert_eq!(
-            core::str::from_utf8(&neg_res_random.characters)
-                .unwrap()
-                .replace(" ", ""),
-            "-3154"
-        );
+        assert_eq!(neg_res_random.to_str().unwrap(), "-3154");
     }
 
     #[test]

@@ -1,4 +1,4 @@
-#![cfg_attr(not(test), no_std)]
+// #![cfg_attr(not(test), no_std)]
 
 use core::str;
 
@@ -15,7 +15,7 @@ pub enum BufError {
 }
 
 pub static BUF_LENGTH: usize = 256;
-static EMPTY_CELL: u8 = ' ' as u8;
+static EMPTY_CELL: u8 = 0;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct BufTxt {
@@ -23,6 +23,12 @@ pub struct BufTxt {
 }
 
 impl BufTxt {
+    pub fn to_str(&self) -> Option<&str> {
+        core::ffi::CStr::from_bytes_until_nul(&self.characters)
+            .ok()?
+            .to_str()
+            .ok()
+    }
     pub fn from_str(s: &str) -> Result<Self, BufError> {
         let buf = s.as_bytes();
         return BufTxt::from_u8(buf);
@@ -35,11 +41,11 @@ impl BufTxt {
         }
 
         // println!("buf.len():{} \n BUF_LENGTH:{}", buf.len(), BUF_LENGTH);
-        for i in (0..BUF_LENGTH).rev() {
-            new_buf[i] = buf[buf.len() - (BUF_LENGTH - i)];
-            if buf.len() <= BUF_LENGTH - i {
+        for i in 0..BUF_LENGTH {
+            if i >= buf.len() {
                 break;
             }
+            new_buf[i] = buf[i];
         }
 
         return Ok(Self {
@@ -58,17 +64,14 @@ impl Default for BufTxt {
 
 #[cfg(test)]
 mod tests {
+    use core::ffi;
+
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
     #[test]
     fn test_new() {
         let new_buf = BufTxt::from_str("12345.lksjdfhg").expect("Failed to buftxt::new");
-        assert_eq!(
-            core::str::from_utf8(&new_buf.characters)
-                .unwrap()
-                .replace(" ", ""),
-            "12345.lksjdfhg"
-        );
+        assert_eq!(new_buf.to_str().unwrap(), "12345.lksjdfhg");
     }
 }
