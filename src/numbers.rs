@@ -62,21 +62,18 @@ impl BufTxt {
                 if !is_neg {
                     return Ok(buf_txt);
                 }
-                for i in (0..BUF_LENGTH) {
-                    if buf_txt.characters[i] == (EMPTY_CELL) {
-                        buf_txt.characters[i] = '-' as u8;
-                        return Ok(buf_txt);
-                    }
+                for i in (1..BUF_LENGTH).rev() {
+                    // Iterate from second-to-last to first
+                    buf_txt.characters[i] = buf_txt.characters[i - 1]; // Shift elements to the right
                 }
+                buf_txt.characters[0] = '-' as u8;
+                return Ok(buf_txt);
             }
         }
-
-        return Err(BufError::BufTooSmall);
     }
     pub fn from_f(float_num: f64, d_place: u8) -> Result<Self, BufError> {
         //Pre place decimal point and check for it later when filling in buf
         let mut float_buf: [u8; BUF_LENGTH] = [EMPTY_CELL; BUF_LENGTH];
-        float_buf[BUF_LENGTH - (d_place + 1) as usize] = '.' as u8;
 
         //need to multiply the float to get all the digits we want to cover within a signed num
         //ex 5.4321 -- dec_p of 3 -> 5432.1 -> (5432.1 as signed) = 5432
@@ -91,20 +88,24 @@ impl BufTxt {
 
         //Add 0 to beginning of numbers less than 1
         if float_num < 1.0 && float_num > -1.0 {
-            float_buf[BUF_LENGTH - (d_place + 2) as usize] = '0' as u8;
+            float_buf[0] = '0' as u8;
         }
 
         let mut ii = 0;
-        for i in (1..BUF_LENGTH).rev() {
+        for i in 0..BUF_LENGTH {
             if signed_num.characters[i] == EMPTY_CELL {
+                for v in ((i + ii - d_place as usize)..(i + ii + 1)).rev() {
+                    float_buf[v] = float_buf[v - 1];
+                }
+                float_buf[i + ii - d_place as usize] = '.' as u8;
                 return Ok(Self {
                     characters: float_buf,
                 });
             }
-            if (float_buf[i] == '.' as u8) || (float_buf[i] == '0' as u8) {
+            if (float_buf[i] == '0' as u8) {
                 ii += 1;
             }
-            float_buf[i - ii] = signed_num.characters[i];
+            float_buf[i + ii] = signed_num.characters[i];
         }
 
         return Err(BufError::NumTraitsError);
@@ -119,23 +120,13 @@ mod tests {
     #[test]
     fn test_unsigned_buf() {
         let res_0 = BufTxt::from_u(0u8).unwrap();
-        assert_eq!(
-            core::str::from_utf8(&res_0.characters)
-                .unwrap()
-                .replace(" ", ""),
-            "0"
-        );
+        assert_eq!(res_0.to_str().unwrap(), "0");
 
         let res_over = BufTxt::from_u(std::u128::MAX);
         assert_eq!(res_over.err().unwrap(), BufError::UnsignedTooLarge);
 
         let res_random = BufTxt::from_u(215u8).unwrap();
-        assert_eq!(
-            core::str::from_utf8(&res_random.characters)
-                .unwrap()
-                .replace(" ", ""),
-            "215"
-        );
+        assert_eq!(res_random.to_str().unwrap(), "215");
     }
 
     #[test]
@@ -162,12 +153,7 @@ mod tests {
     #[test]
     fn test_float_buf() {
         let res_0 = BufTxt::from_f(0f64, 2).unwrap();
-        assert_eq!(
-            core::str::from_utf8(&res_0.characters)
-                .unwrap()
-                .replace(" ", ""),
-            "0"
-        );
+        assert_eq!(res_0.to_str().unwrap(), "0");
 
         let res_over = BufTxt::from_f(std::f64::MAX, 2);
         match res_over {
@@ -179,27 +165,14 @@ mod tests {
         }
 
         let res_random = BufTxt::from_f(215.2341657f64, 3).unwrap();
-        assert_eq!(
-            core::str::from_utf8(&res_random.characters)
-                .unwrap()
-                .replace(" ", ""),
-            "215.234"
-        );
+        assert_eq!(res_random.to_str().unwrap(), "215.234");
+        println!("Passed: 215.234");
 
         let neg_res_random = BufTxt::from_f(-3154.52611f64, 2).unwrap();
-        assert_eq!(
-            core::str::from_utf8(&neg_res_random.characters)
-                .unwrap()
-                .replace(" ", ""),
-            "-3154.53"
-        );
+        assert_eq!(neg_res_random.to_str().unwrap(), "-3154.53");
+        println!("Passed: -3154.53");
 
         let neg_res_random = BufTxt::from_f(0.52611f64, 2).unwrap();
-        assert_eq!(
-            core::str::from_utf8(&neg_res_random.characters)
-                .unwrap()
-                .replace(" ", ""),
-            "0.53"
-        );
+        assert_eq!(neg_res_random.to_str().unwrap(), "0.53");
     }
 }
