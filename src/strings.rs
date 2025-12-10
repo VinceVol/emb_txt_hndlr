@@ -4,27 +4,31 @@ impl BufTxt {
     pub fn concat(a: BufTxt, b: BufTxt) -> Result<Self, BufError> {
         let mut new_buf: [u8; BUF_LENGTH] = [EMPTY_CELL; BUF_LENGTH];
         let mut nb_index: usize = 0;
-        for i_b in 0..BUF_LENGTH - 1 {
-            new_buf[i_b] = b.characters[i_b];
-            println!(
-                "b.characters[{}] = {}",
-                i_b + 1,
-                core::str::from_utf8(&[b.characters[i_b + 1]]).unwrap()
-            );
-            if b.characters[i_b + 1] == EMPTY_CELL {
-                nb_index = i_b;
+        for i_a in 0..BUF_LENGTH - 1 {
+            new_buf[i_a] = a.characters[i_a];
+            // println!(
+            //      "a.characters[{}] = {}",
+            //      i_a,
+            //      core::str::from_utf8(&[a.characters[i_a]]).unwrap()
+            //  );
+            if a.characters[i_a + 1] == EMPTY_CELL {
+                nb_index = i_a + 1;
                 break;
             }
         }
-        println!("nb_index: {}", nb_index);
+        // println!("nb_index: {}", nb_index);
         if nb_index == 0 {
             return Err(BufError::BufTooSmall);
         }
 
-        for i_a in 0..BUF_LENGTH - nb_index {
-            new_buf[i_a + nb_index] = a.characters[i_a];
-            println!("new_buf[{}] = a.characterss[{}]", i_a + nb_index, i_a);
-            if a.characters[i_a - 1] == EMPTY_CELL {
+        for i_b in 0..BUF_LENGTH - nb_index {
+            new_buf[i_b + nb_index] = b.characters[i_b];
+            // println!("new_buf[{}] = b.characters[{}]", i_b + nb_index, i_b);
+            // println!(
+            //     "b.characters: {}",
+            //     core::str::from_utf8(&[b.characters[i_b]]).unwrap()
+            // );
+            if b.characters[i_b + 1] == EMPTY_CELL {
                 return Ok(Self {
                     characters: new_buf,
                 });
@@ -34,8 +38,15 @@ impl BufTxt {
     }
     pub fn concat_list(buf_list: &[BufTxt]) -> Result<BufTxt, BufError> {
         let mut new_buf = BufTxt::default();
+        let mut i = 0;
         for buf in buf_list {
-            new_buf = BufTxt::concat(new_buf, *buf)?;
+            if i == 0 {
+                new_buf = BufTxt::concat(*buf, new_buf)?;
+            } else {
+                new_buf = BufTxt::concat(new_buf, *buf)?;
+                // println!("buf: {}", buf.to_str().unwrap());
+            }
+            i += 1;
         }
         return Ok(new_buf);
     }
@@ -79,10 +90,10 @@ mod tests {
 
     #[test]
     fn test_concat() {
-        let buf_a = BufTxt::from_str("0").unwrap();
-        let buf_b = BufTxt::from_str(":").unwrap();
+        let buf_a = BufTxt::from_str("a").unwrap();
+        let buf_b = BufTxt::from_str("b").unwrap();
         let buf_c = BufTxt::concat(buf_a, buf_b).unwrap();
-        assert_eq!(buf_c.to_str().unwrap(), "0:");
+        assert_eq!(buf_c.to_str().unwrap(), "ab");
         // assert_eq!(
         //     core::str::from_utf8(&buf_c.characters)
         //         .unwrap()

@@ -1,5 +1,5 @@
 use crate::{BUF_LENGTH, BufError, BufTxt, EMPTY_CELL};
-use num_traits::{Signed, ToPrimitive, Unsigned, float::FloatCore, pow};
+use num_traits::{Signed, ToPrimitive, Unsigned, float::FloatCore, pow}; //FLOATCORE IN USE
 
 //Use this to only rip lines of code with std
 // #[cfg(feature = "std")]
@@ -102,7 +102,7 @@ impl BufTxt {
                     characters: float_buf,
                 });
             }
-            if (float_buf[i] == '0' as u8) {
+            if float_buf[i] == '0' as u8 {
                 ii += 1;
             }
             float_buf[i + ii] = signed_num.characters[i];
